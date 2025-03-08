@@ -1,5 +1,5 @@
 {
-    "name": "circularprotocol/circularenterpriseapis",
+    "name": "circularprotocol/circular-enterprise-apis",
     "description": "Official Circular Enterprise APIs",
     "type": "library",
     "require": {
