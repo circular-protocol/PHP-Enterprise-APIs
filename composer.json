@@ -1,0 +1,22 @@
+{
+    "name": "circularprotocol/circularenterpriseapis",
+    "description": "Official Circular Enterprise APIs",
+    "type": "library",
+    "require": {
+        "simplito/elliptic-php": "^1.0"
+    },
+    "require-dev": {
+        "simplito/elliptic-php": "^1.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Circularprotocol\\Circularenterpriseapis\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Danny De Novi"
+        }
+    ]
+}
