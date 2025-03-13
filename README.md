@@ -116,20 +116,56 @@ echo "Network URL set to: " . $networkUrl . "\n";
 4. Fetch transaction details using the transaction ID.
 
 ```php
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php'; // IF NEEDED
+require_once __DIR__ . '/src/CircularEnterpriseAPIS-php'; // IF NEEDED
+
 use Circularprotocol\Circularenterpriseapis\CEP_Account;
 
-$account = new CEP_Account();
-$account->open('your_address_here');
+try {
+    // Instantiate the CEP Account class
+    $account = new CEP_Account();
+    echo "CEP_Account instantiated successfully.\n";
 
-// Submit data
-$pdata = 'Your data to certify';
-$privateKey = 'your_private_key_here';
-$response = $account->submitCertificate($pdata, $privateKey);
+    $address = 'your-account-address';
+    $pk = 'your-private-key'; // Note: pk should be a string, not a hex literal
+    $blockchain = 'blockchain-address'; // Same here, string.
+    $txID = ''; // Initialize txID
+    $txBlock = ''; // Initialize txBlock
 
-// Retrieve transaction details
-$TxID = $response['ID']; // Assuming the response contains the transaction ID
-$transaction = $account->getTransactionbyID($TxID, 0, 10);
-print_r($transaction);
+    $account->setNetwork("testnet"); // chose between multiple networks such as testnet, devnet and mainnet
+    $account->setBlockchain($blockchain);
+    echo "Test variables set.\n";
+
+    if ($account->open($address)) {
+        echo "Account opened successfully.\n";
+
+        if ($account->updateAccount()) {
+            echo "Nonce: " . $account->Nonce . "\n";
+
+            $txIDTemp = $account->submitCertificate("your-data-to-certificate", "1de4fc4d951349a382c9ca58e6c82feeed8a233657683455080338675ad7e61f");
+            $txID = $txIDTemp["Response"]["TxID"];
+            echo "TxID: " . $txID . "\n";
+
+            $resp = $account->getTransactionOutcome($txID, 10);
+            $blockID = $resp["BlockID"];
+            $status = $account->getTransaction($blockID, $txID);
+
+            echo "Transaction Status: " . $status["Response"]["Status"] . "\n";
+
+            $account->close();
+        } else {
+            echo "Update Account Error: " . $account->lastError . "\n";
+        }
+    } else {
+        echo "Failed to open account: " . $account->lastError . "\n";
+    }
+} catch (Exception $e) {
+    echo "An error occurred: " . $e->getMessage() . "\n";
+}
+
+?>
 ```
 
 ---
