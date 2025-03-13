@@ -61,7 +61,22 @@ $account->open('a4fc8b11bfc5dc2911ab41871e6de81f500fe60f3961343b202ad78e7e297ea0
 echo "Account opened successfully.\n";
 ```
 
-### 2. Submitting a Certificate
+### 2. Chosing a network and the blockchain:
+```php
+$blockchain = 'blockchain-address';
+$account->setNetwork("testnet"); // chose between multiple networks such as testnet, devnet and mainnet
+$account->setBlockchain($blockchain);
+```
+
+### 3. Retrieve account informations
+Update account informations such as Nonce:
+```php
+if($account->updateAccount()){
+ //...
+}
+```
+
+### 4. Submitting a Certificate
 To submit data for certification:
 ```php
 $pdata = 'Your data to certify';
@@ -75,27 +90,21 @@ try {
 }
 ```
 
-### 3. Retrieving a Transaction
-To fetch transaction details by ID:
+### 5. Retrieving a Transaction
+To fetch transaction details:
 ```php
-$TxID = 'your_transaction_id_here';
-$Start = 0; // Starting block
-$End = 10;  // Ending block
+$txID = $response["Response"]["TxID"];
+echo "TxID: " . $txID . "\n";
 
-try {
-    $transaction = $account->getTransactionbyID($TxID, $Start, $End);
-    print_r($transaction);
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
-}
+$resp = $account->getTransactionOutcome($txID, 10); //Polling on the chain
+$blockID = $resp["BlockID"]; // Save the BlockID for a faster direct access when needed
+$status = $account->getTransaction($blockID, $txID);
+
+echo "Transaction Status: " . $status["Response"]["Status"] . "\n";
+
+$account->close(); // Reset the account class
 ```
 
-### 4. Setting the Blockchain Network
-To switch between networks (e.g., mainnet, testnet):
-```php
-$networkUrl = $account->setNetwork('mainnet');
-echo "Network URL set to: " . $networkUrl . "\n";
-```
 
 ---
 
@@ -111,9 +120,10 @@ echo "Network URL set to: " . $networkUrl . "\n";
 ## Example Workflow
 
 1. Open an account.
-2. Submit data for certification.
-3. Retrieve the transaction ID from the response.
-4. Fetch transaction details using the transaction ID.
+2. Set network and blockchain info
+3. Submit data for certification.
+4. Retrieve the transaction ID from the response.
+5. Fetch transaction details using the TxID and the BlockID.
 
 ```php
 <?php
