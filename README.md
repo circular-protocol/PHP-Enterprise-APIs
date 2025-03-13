@@ -93,16 +93,25 @@ try {
 ### 5. Retrieving a Transaction
 To fetch transaction details:
 ```php
-$txID = $response["Response"]["TxID"];
-echo "TxID: " . $txID . "\n";
+//...
+$resp = $account->getTransactionOutcome($txID, 10);
+if ($resp["BlockID"]) {
+  $blockID = $resp["BlockID"];
+  $status = $account->getTransaction($blockID, $txID);
 
-$resp = $account->getTransactionOutcome($txID, 10); //Polling on the chain
-$blockID = $resp["BlockID"]; // Save the BlockID for a faster direct access when needed
-$status = $account->getTransaction($blockID, $txID);
+  if ($status == 200) {
+      echo "Transaction Status: " .
+          $status["Response"]["Status"] .
+          "\n";
 
-echo "Transaction Status: " . $status["Response"]["Status"] . "\n";
-
-$account->close(); // Reset the account class
+      $account->close();
+  } else {
+      echo "Error on retrieving transaction";
+  }
+} else {
+  echo "Error on retrieving transaction status";
+}
+//...
 ```
 
 
@@ -128,8 +137,8 @@ $account->close(); // Reset the account class
 ```php
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php'; // IF NEEDED
-require_once __DIR__ . '/src/CircularEnterpriseAPIS-php'; // IF NEEDED
+require_once __DIR__ . "/vendor/autoload.php"; // IF NEEDED
+require_once __DIR__ . "/src/CircularEnterpriseAPIS-php"; // IF NEEDED
 
 use Circularprotocol\Circularenterpriseapis\CEP_Account;
 
@@ -138,11 +147,11 @@ try {
     $account = new CEP_Account();
     echo "CEP_Account instantiated successfully.\n";
 
-    $address = 'your-account-address';
-    $pk = 'your-private-key'; // Note: pk should be a string, not a hex literal
-    $blockchain = 'blockchain-address'; // Same here, string.
-    $txID = ''; // Initialize txID
-    $txBlock = ''; // Initialize txBlock
+    $address = "your-account-address";
+    $pk = "your-private-key"; // Note: pk should be a string, not a hex literal
+    $blockchain = "blockchain-address"; // Same here, string.
+    $txID = ""; // Initialize txID
+    $txBlock = ""; // Initialize txBlock
 
     $account->setNetwork("testnet"); // chose between multiple networks such as testnet, devnet and mainnet
     $account->setBlockchain($blockchain);
@@ -154,17 +163,34 @@ try {
         if ($account->updateAccount()) {
             echo "Nonce: " . $account->Nonce . "\n";
 
-            $txIDTemp = $account->submitCertificate("your-data-to-certificate", "1de4fc4d951349a382c9ca58e6c82feeed8a233657683455080338675ad7e61f");
-            $txID = $txIDTemp["Response"]["TxID"];
-            echo "TxID: " . $txID . "\n";
+            $txIDTemp = $account->submitCertificate(
+                "your-data-to-certificate",
+                "1de4fc4d951349a382c9ca58e6c82feeed8a233657683455080338675ad7e61f"
+            );
+            if ($txIDTemp["Result"] == 200) {
+                $txID = $txIDTemp["Response"]["TxID"];
+                echo "TxID: " . $txID . "\n";
 
-            $resp = $account->getTransactionOutcome($txID, 10);
-            $blockID = $resp["BlockID"];
-            $status = $account->getTransaction($blockID, $txID);
+                $resp = $account->getTransactionOutcome($txID, 10);
+                if ($resp["BlockID"]) {
+                    $blockID = $resp["BlockID"];
+                    $status = $account->getTransaction($blockID, $txID);
 
-            echo "Transaction Status: " . $status["Response"]["Status"] . "\n";
+                    if ($status == 200) {
+                        echo "Transaction Status: " .
+                            $status["Response"]["Status"] .
+                            "\n";
 
-            $account->close();
+                        $account->close();
+                    } else {
+                        echo "Error on retrieving transaction";
+                    }
+                } else {
+                    echo "Error on retrieving transaction status";
+                }
+            } else {
+                echo "Certificate submission error";
+            }
         } else {
             echo "Update Account Error: " . $account->lastError . "\n";
         }
